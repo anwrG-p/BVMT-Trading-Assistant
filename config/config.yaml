@@ -1,0 +1,100 @@
+# BVMT Stock Forecasting System Configuration
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  models_dir: models/saved
+  reports_dir: data/reports
+
+  # File paths
+  stock_quotation_dir: data/raw/bvmt/Stock Quotation
+  dividends_dir: data/raw/bvmt/dividends
+  index_dir: data/raw/bvmt/index
+
+  # Data quality
+  min_trading_days: 252 # Minimum 1 year of data
+  outlier_threshold: 10.0 # Price jump >10x flagged as outlier
+
+features:
+  lookback_window: 60 # Days of history for features
+
+  # Price features
+  sma_periods: [5, 10, 20, 50]
+  ema_periods: [12, 26]
+  rsi_period: 14
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  bollinger_period: 20
+  bollinger_std: 2
+
+  # Volume features
+  volume_ma_period: 20
+  liquidity_q_low: 0.20 # Q20 for low liquidity
+  liquidity_q_high: 0.80 # Q80 for high liquidity
+
+  # Market features
+  market_corr_window: 60 # Rolling correlation window
+
+  # Momentum lags
+  price_lags: [1, 5, 10, 20]
+  volume_lags: [1, 5, 10]
+
+model:
+  # Train/val/test split
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+  # Random seed for reproducibility
+  random_seed: 42
+
+  # XGBoost hyperparameters
+  xgb_max_depth: [3, 5, 7]
+  xgb_learning_rate: [0.01, 0.05, 0.1]
+  xgb_n_estimators: [100, 300, 500]
+  xgb_subsample: [0.8, 1.0]
+  xgb_colsample_bytree: [0.8, 1.0]
+
+  # Quantile regression
+  quantiles: [0.10, 0.50, 0.90] # 10th, 50th (median), 90th percentiles
+
+  # Forecast horizons
+  forecast_horizons: [1, 2, 3, 4, 5] # Days ahead
+
+validation:
+  # Walk-forward validation
+  initial_train_size: 100000 # ~4-5 years of data (considering ~80 stocks)
+  step_size: 5000 # ~3 months of data
+  max_test_size: 2 # Limit splits for quick validation
+
+  # Performance metrics
+  metrics: ["rmse", "mae", "mape", "directional_accuracy"]
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  reload: false
+  workers: 4
+
+dashboard:
+  host: 0.0.0.0
+  port: 8501
+  theme: dark
+
+logging:
+  level: INFO
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+  rotation: "100 MB"
+  retention: "30 days"
+
+# Tunisia-specific
+tunisia:
+  timezone: Africa/Tunis
+  trading_hours:
+    start: "10:00"
+    end: "12:30"
+  currency: TND
+
+  # Ramadan dates (will be calculated programmatically)
+  ramadan_impact: true
