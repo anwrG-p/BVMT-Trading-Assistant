@@ -1,0 +1,20 @@
+[
+  "rsi",
+  "macd",
+  "macd_signal",
+  "bb_percent",
+  "price_zscore",
+  "momentum_1",
+  "momentum_5",
+  "momentum_10",
+  "volume_ratio",
+  "volume_momentum_1",
+  "volume_momentum_5",
+  "avg_trade_size",
+  "turnover_ratio",
+  "volatility",
+  "market_correlation",
+  "beta",
+  "relative_strength",
+  "spread_proxy"
+]

@@ -31,9 +31,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Jupyter Notebook
+# Jupyter Notebook (keep .ipynb files, ignore cache)
 .ipynb_checkpoints
-*.ipynb_checkpoints
 */.ipynb_checkpoints/*
 
 # IDE
@@ -45,20 +44,19 @@ MANIFEST
 .DS_Store
 Thumbs.db
 
-# Data files (too large)
+# Large data files (ignore - keep only processed/necessary data)
 *.parquet
 *.feather
-*.h5
-*.hdf5
 
-# Trained models (keep .json configs)
-*.pkl
-*.pickle
-*.joblib
-*.h5
+# Keep trained models (.pkl, .pickle, .joblib)
+# Do NOT ignore - these are part of the project
 
-# Output/Results (large files)
-*.json
+# Keep config files (model configs, metadata)
+# Do NOT ignore .json config files - models/ directory configs are needed
+
+# Output/Results (large csv/log exports)
+outputs/*.csv
+outputs/*.log
 
 # IDE specific
 .project

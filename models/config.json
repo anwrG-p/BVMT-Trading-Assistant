@@ -1,0 +1,17 @@
+{
+  "contamination": 0.05,
+  "random_state": 42,
+  "n_estimators": 100,
+  "volume_z_threshold": 3.0,
+  "liquidity_disappearance_threshold": 0.1,
+  "rsi_high": 75,
+  "rsi_low": 25,
+  "weight_volume": 0.4,
+  "weight_liquidity": 0.3,
+  "weight_behavioral": 0.2,
+  "weight_fundamental": 0.1,
+  "risk_high_threshold": 0.7,
+  "risk_medium_threshold": 0.4,
+  "rolling_window": 30,
+  "rsi_period": 14
+}
