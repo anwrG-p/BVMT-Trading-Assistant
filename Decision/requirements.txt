@@ -1,0 +1,6 @@
+pandas
+numpy
+scipy
+# PyPortfolioOpt (Optional, handled by scipy fallback)
+scikit-learn
+google-generativeai # For Gemini API
