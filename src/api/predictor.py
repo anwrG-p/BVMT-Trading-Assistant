@@ -147,39 +147,30 @@ class StockPredictor:
             # Ideally use a trading calendar
             
             p_data = price_preds[h]
-            median_return = p_data['median'] # This is log return? No, wait.
-            # predict() returns transformed values or raw?
-            # MultiHorizonForecaster returns WHAT?
-            # It returns the PREDICTION from the model.
-            # The model predicts LOG RETURN usually (as per create_target).
-            # So we need to convert back to price!
-             
-            # WAIT: predict() in predictor.py 
-            # currently just returns the raw output of forecaster.predict()
-            # which is log_return.
-            # We need to convert it to price for the user/visualization.
-            
-            # Let's fix predict() to return Prices or Returns?
-            # Usually API consumers want Price or % Change.
-            # Let's assume predict() needs to convert log_return to price level.
-            
-            # For visualization, we definitely need Price Levels.
+            median_return = p_data['median'] # This is log return
             
             # Convert log return to price: Price_t+h = Price_t * exp(log_return)
             current_price = preds['current_price']
             predicted_price = current_price * np.exp(median_return)
             
             # CI conversion
-            # lower_ret = p_data['ci_80']['lower'] if available
-            # We need to handle the dict structure carefully
-            
             lower_price = None
             upper_price = None
             
             # Check for CI keys (depends on what predict() returned)
-            if 'ci_80' in p_data:
-                lower_ret = p_data['ci_80']['lower']
-                upper_ret = p_data['ci_80']['upper']
+            # define helper to extract CI safely
+            def get_ci(data, level):
+                key = f'ci_{level}'
+                if key in data:
+                    return data[key]['lower'], data[key]['upper']
+                return None, None
+
+            # Try 95, then 80
+            lower_ret, upper_ret = get_ci(p_data, 95)
+            if lower_ret is None:
+                lower_ret, upper_ret = get_ci(p_data, 80)
+            
+            if lower_ret is not None:
                 lower_price = current_price * np.exp(lower_ret)
                 upper_price = current_price * np.exp(upper_ret)
             
@@ -195,6 +186,25 @@ class StockPredictor:
             "symbol": symbol,
             "data": forecast_data
         }
+
+    def get_feature_importance(self) -> List[Dict]:
+        """
+        Get feature importance from the primary model (Horizon 1).
+        
+        Returns:
+            List of dicts with feature and importance
+        """
+        if self.price_forecaster is None:
+            return []
+            
+        # Use horizon 1, median quantile as representative
+        h1_model = self.price_forecaster.models.get(1)
+        if h1_model:
+            df = h1_model.get_feature_importance(quantile=0.5)
+            if df is not None:
+                return df.head(20).to_dict('records') # Top 20
+        
+        return []
 
     def predict(
         self,

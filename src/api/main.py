@@ -243,6 +243,10 @@ async def get_metrics():
             "sharpe_ratio": 0.0, # Placeholder or recalc
             "max_drawdown": 0.0
         }
+        
+    # Get feature importance
+    if predictor:
+        response["feature_importance"] = predictor.get_feature_importance()
     
     return sanitize_response(response)
 

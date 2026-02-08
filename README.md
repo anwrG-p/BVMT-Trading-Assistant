@@ -1,127 +1,186 @@
-# BVMT Trading Assistant 🇹🇳📈
+# BVMT Trading Assistant 🇹🇳
 
-A production-grade stock price forecasting system for the Tunisian Stock Exchange (BVMT).
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-beta-orange)
 
-## 🚀 Features
+**An Intelligent Stock Price Forecasting System for the Tunisian Stock Market (BVMT).**
 
-- **Multi-Horizon Forecasting**: Predicts stock prices 1-5 days ahead using XGBoost with Quantile Regression.
-- **Confidence Intervals**: Provides 80% and 95% confidence intervals for risk management.
-- **Liquidity Analysis**: Forecasts volume and classifies liquidity regimes (Low/Normal/High) using Q20/Q80 thresholds.
-- **Tunisia-Specific**:
-  - Ramadan calendar impact integration (via `hijri-converter`).
-  - BVMT trading hours and holidays.
-  - Dividend adjustments (custom engine).
-- **Interactive Dashboard**: Streamlit app for visualizing predictions and model performance.
-- **REST API**: FastAPI service for model inference.
+The **BVMT Trading Assistant** is a quantitative finance tool designed to forecast stock prices on the Tunisian Stock Exchange. It leverages advanced machine learning (XGBoost) to predict future price movements, estimate confidence intervals, and classify liquidity regimes. Built with a modern tech stack including FastAPI, Streamlit, and Docker, it offers a robust platform for local investors and analysts.
 
-## 🛠️ Architecture
+![Dashboard Demo](docs/assets/dashboard_screenshot.png) _(Placeholder for screenshot)_
 
-```
-BVMT-Trading-Assistant/
-├── config/                 # Configuration (YAML)
-├── data/                   # Data storage
-│   ├── raw/                # Source files (BVMT quotations, dividends)
-│   ├── processed/          # Parquet files
-│   └── reports/            # Validation reports
-├── models/                 # Saved models (XGBoost)
-├── scripts/                # Utility scripts
-├── src/                    # Source code
-│   ├── api/                # FastAPI application
-│   ├── dashboard/          # Streamlit dashboard
-│   ├── data/               # Ingestion & Validation
-│   ├── features/           # Feature Engineering
-│   ├── models/             # Model definitions
-│   ├── validation/         # Backtesting & Metrics
-│   └── utils/              # Logging & Config
-└── tests/                  # Unit & Integration tests
-```
+## Key Features
 
-## 📦 Installation
+- **Multi-Horizon Forecasting**: Predicts stock price movements for 1 to 5 days into the future.
+- **Confidence Intervals**: Provides 80% and 95% confidence bands to quantify prediction uncertainty.
+- **Volume & Liquidity Analysis**: Forecasts trading volume and classifies liquidity regimes (Low, Normal, High).
+- **Dividend-Adjusted Data**: Automatically adjusts historical prices for dividend payouts to ensure accurate modeling.
+- **Tunisian Market Context**: Integrates specific calendar features like Ramadan and BVMT trading holidays.
+- **Interactive Dashboard**: A user-friendly Streamlit interface for visualizing forecasts and analyzing model performance.
+- **Production-Ready API**: A FastAPI backend serving predictions and metrics via REST endpoints.
+- **Dockerized Deployment**: Fully containerized application for easy setup and reproducibility.
 
-1. **Clone the repository**:
+## Table of Contents
 
-   ```bash
-   git clone https://github.com/yourusername/BVMT-Trading-Assistant.git
-   cd BVMT-Trading-Assistant
-   ```
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Data Requirements](#data-requirements)
+- [Model Performance](#model-performance)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
+- [License](#license)
 
-2. **Install dependencies**:
+## Quick Start
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Prerequisites
 
-3. **Set up environment** (optional):
-   ```bash
-   # Create .env file if needed
-   cp .env.example .env
-   ```
+- Docker & Docker Compose
+- **OR** Python 3.9+ and Git
 
-## 🚦 Usage Needs
+### Run with Docker (Recommended)
 
-### 1. Data Ingestion
-
-Load raw data, apply dividend adjustments, and clean:
+Get the system running in minutes:
 
 ```bash
-python scripts/ingest_data.py
+# 1. Clone the repository
+git clone https://github.com/yourusername/BVMT-Trading-Assistant.git
+cd BVMT-Trading-Assistant
+
+# 2. Build and start services
+docker-compose up -d --build
+
+# 3. Access the dashboard
+# Open http://localhost:8501 in your browser
 ```
 
-### 2. Feature Engineering
+### Expected Output
 
-Generate technical indicators (RSI, MACD, Bollinger Bands, etc.):
+- **Dashboard**: `http://localhost:8501` - Interactive UI.
+- **API Docs**: `http://localhost:8000/docs` - Swagger UI for the backend API.
+
+## Architecture
+
+The system follows a modular microservices-like architecture:
+
+```mermaid
+graph TD
+    Data[Raw Data (CSV/Excel)] --> Ingestion[Data Ingestion Pipeline]
+    Ingestion --> Features[Feature Engineering]
+    Features --> Training[Model Training (XGBoost)]
+    Training --> Models[Serialized Models]
+
+    Models --> API[FastAPI Backend]
+    Features --> API
+
+    API --> Dashboard[Streamlit Dashboard]
+    User((User)) --> Dashboard
+```
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for a deep dive.
+
+## Installation (Local Dev)
+
+If you prefer running without Docker:
+
+1.  **Clone and Setup Environment**
+
+    ```bash
+    git clone https://github.com/yourusername/BVMT-Trading-Assistant.git
+    cd BVMT-Trading-Assistant
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
+
+2.  **Run the API**
+
+    ```bash
+    uvicorn src.api.main:app --reload
+    ```
+
+3.  **Run the Dashboard**
+    ```bash
+    streamlit run src/dashboard/app.py
+    ```
+
+## Usage
+
+### Using the Dashboard
+
+1.  Navigate to `http://localhost:8501`.
+2.  Select a stock symbol from the sidebar (e.g., `100010`, `SFBT`).
+3.  Click **"Generate Forecast"**.
+4.  View the **Price Forecast** chart with confidence intervals and the **Volume/Liquidity** analysis.
+5.  Explore the **Model Performance** and **Feature Importance** tabs.
+
+### Using the API
+
+Make a prediction for a stock via curl:
 
 ```bash
-# This is handled automatically by the training pipeline,
-# or can be run via:
-python src/features/pipeline.py
+curl -X POST "http://localhost:8000/predict" \
+     -H "Content-Type: application/json" \
+     -d '{"symbol": "SFBT", "horizons": [1, 5]}'
 ```
 
-### 3. Model Training & Validation
+See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full details.
 
-Train models validation/backtesting:
+## Data Requirements
 
-```bash
-python scripts/validate_models.py
-```
+The system expects data in the `data/raw` directory with the following structure:
 
-_Note: This script trains models using a walk-forward validation approach and saves performance metrics._
+- **Cotations**: Daily price data (CSV/TXT).
+- **Dividends**: History of dividend payouts (Excel).
 
-### 4. Run API
+See [DATA_SCHEMA.md](docs/DATA_SCHEMA.md) for column specifications.
 
-Start the prediction service:
+## Model Performance
 
-```bash
-uvicorn src.api.main:app --reload
-```
+The models are evaluated using Walk-Forward Validation. Key metrics include:
 
-Open `http://localhost:8000/docs` for API documentation.
+- **RMSE**: Root Mean Squared Error of price predictions.
+- **Directional Accuracy**: Percentage of correct trend predictions.
+- **Coverage**: Percentage of actual prices falling within confidence intervals.
 
-### 5. Run Dashboard
+Detailed benchmarks are available in [MODEL_CARD.md](docs/MODEL_CARD.md).
 
-Launch the visualization app:
+## Development
 
-```bash
-streamlit run src/dashboard/app.py
-```
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## 📊 Performance Metrics
+### Project Structure
 
-The system evaluates models using:
+- `src/api`: FastAPI backend.
+- `src/dashboard`: Streamlit frontend.
+- `src/models`: Forecasting models (XGBoost).
+- `src/features`: Feature engineering logic.
+- `src/data`: Data loaders and validators.
+- `tests/`: Unit and integration tests.
 
-- **RMSE/MAE**: Accuracy of point forecasts.
-- **Directional Accuracy**: Ability to predict price movement direction.
-- **CI Coverage**: Verification of uncertainty estimates (target: 95%).
-- **Sharpe Ratio**: Risk-adjusted returns in backtesting.
+See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for more info.
 
-## 🧪 Testing
+## Deployment
 
-Run the test suite:
+The application is containerized for easy deployment to cloud platforms (AWS, Azure, GCP) or on-premise servers.
 
-```bash
-pytest tests/
-```
+See [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for production setup.
 
-## 📝 License
+## Roadmap
 
-MIT License. See [LICENSE](LICENSE) for details.
+- [ ] Integration with real-time market data feed.
+- [ ] Portfolio optimization features.
+- [ ] User authentication and personalized watchlists.
+- [ ] Sentiment analysis from financial news.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For questions or feedback, please open an issue on GitHub.
