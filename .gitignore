@@ -1,0 +1,97 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Data files (too large)
+*.parquet
+*.feather
+*.h5
+*.hdf5
+
+# Trained models (keep .json configs)
+*.pkl
+*.pickle
+*.joblib
+*.h5
+
+# Output/Results (large files)
+*.json
+
+# IDE specific
+.project
+.pydevproject
+.settings/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Distribution / packaging
+.Python
+dist/
+
+# PDFs (if storing downloaded PDFs)
+*.pdf
+
+# CSV exports (optional - uncomment if you want to track them)
+# *.csv
