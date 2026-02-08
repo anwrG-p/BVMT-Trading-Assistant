@@ -93,3 +93,7 @@ dist/
 
 # CSV exports (optional - uncomment if you want to track them)
 # *.csv
+
+# Local Data and Models
+data/
+models/
