@@ -3,7 +3,10 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional
-import xgboost as xgb
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
 from tqdm import tqdm
 
 from src.models.base import QuantileForecaster
@@ -56,17 +59,22 @@ class XGBQuantileForecaster(QuantileForecaster):
         target_column: str = 'log_return'
     ) -> pd.Series:
         """
-        Create target variable for given horizon.
+        Create cumulative return target variable for given horizon.
         
         Args:
-            df: DataFrame with returns
-            target_column: Column to use as target
+            df: DataFrame with returns or prices
+            target_column: Column to use as return target
             
         Returns:
-            Target series shifted by horizon
+            Target series representing cumulative return from t to t+h
         """
-        # Shift returns by horizon (negative shift = future values)
-        target = df.groupby('symbol')[target_column].shift(-self.horizon)
+        price_col = 'adj_close' if 'adj_close' in df.columns else ('close' if 'close' in df.columns else None)
+        if price_col:
+            future_price = df.groupby('symbol')[price_col].shift(-self.horizon)
+            target = np.log(future_price / df[price_col])
+        else:
+            future_returns = [df.groupby('symbol')[target_column].shift(-k) for k in range(1, self.horizon + 1)]
+            target = sum(future_returns)
         
         return target
     

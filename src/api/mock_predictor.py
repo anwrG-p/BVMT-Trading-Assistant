@@ -48,7 +48,7 @@ class MockStockPredictor:
             price_predictions[h] = {
                 'median': np.log(1 + change), # log return
                 'ci_80': {'lower': np.log(1 + change - 0.01), 'upper': np.log(1 + change + 0.01)},
-                'ci_90': {'lower': np.log(1 + change - 0.02), 'upper': np.log(1 + change + 0.02)}
+                'ci_95': {'lower': np.log(1 + change - 0.02), 'upper': np.log(1 + change + 0.02)}
             }
             
             volume_predictions[h] = {

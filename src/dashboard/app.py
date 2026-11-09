@@ -7,12 +7,29 @@ from plotly.subplots import make_subplots
 import requests
 from datetime import datetime, timedelta
 import sys
+import os
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils import config
+
+# API configuration
+api_host = os.getenv("API_HOST", "localhost")
+api_port = os.getenv("API_PORT", "8000")
+API_URL = os.getenv("API_URL", f"http://{api_host}:{api_port}")
+
+@st.cache_data(ttl=300)
+def get_symbols():
+    """Get list of available symbols from API."""
+    try:
+        response = requests.get(f"{API_URL}/symbols", timeout=5)
+        if response.status_code == 200:
+            return response.json().get("symbols", [])
+        return []
+    except Exception:
+        return []
 
 # Page config
 @st.cache_data(ttl=300)
@@ -153,3 +170,6 @@ def main():
                              st.info("Feature importance not available.")
                     else:
                         st.info("Feature importance not available.")
+
+if __name__ == "__main__":
+    main()

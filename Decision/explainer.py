@@ -210,7 +210,7 @@ Output: 2-3 sentence executive summary, then list top 3-5 holdings with brief re
 
 # Example Usage
 if __name__ == "__main__":
-    explainer = PortfolioExplainer(api_key="AIzaSyD_YIpoubkm_ET4IbTJD4stqKdlzhS58aE")
+    explainer = PortfolioExplainer()
     
     # Dummy data
     weights = {'AAPL': 0.4, 'GOOG': 0.6}

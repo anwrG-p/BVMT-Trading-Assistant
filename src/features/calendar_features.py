@@ -92,8 +92,10 @@ def add_month_end(df: pd.DataFrame, date_column: str = 'date') -> pd.DataFrame:
         DataFrame with month-end indicator added
     """
     df = df.copy()
-    
-    df['is_month_end'] = pd.to_datetime(df[date_column]).dt.is_month_end.astype(int)
+    dates = pd.to_datetime(df[date_column])
+    year_month = dates.dt.to_period('M')
+    last_trading_day = dates.groupby(year_month).transform('max')
+    df['is_month_end'] = (dates == last_trading_day).astype(int)
     
     logger.debug(f"Added month-end indicator")
     

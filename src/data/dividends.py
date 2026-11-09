@@ -166,38 +166,38 @@ class DividendAdjuster:
             logger.warning("No ex_date column in dividend data, skipping adjustment")
             return price_df
         
-        # Group by symbol
-        for symbol in price_df['symbol'].unique():
-            symbol_prices = price_df[price_df['symbol'] == symbol].copy()
+        # Process symbol by symbol
+        adjusted_groups = []
+        for symbol, symbol_prices in price_df.groupby('symbol', sort=False):
+            symbol_prices = symbol_prices.sort_values('date').copy()
             symbol_divs = div_std[div_std['symbol'] == symbol]
             
-            if len(symbol_divs) == 0:
-                continue
-            
-            # Sort dividends by ex-date (descending for backward adjustment)
-            symbol_divs = symbol_divs.sort_values('ex_date', ascending=False)
-            
-            # Calculate adjustment factor for each dividend
-            adj_factor = 1.0
-            
-            for _, div_row in symbol_divs.iterrows():
-                ex_date = div_row['ex_date']
-                dividend = div_row['dividend']
+            if len(symbol_divs) > 0:
+                symbol_divs = symbol_divs.sort_values('ex_date', ascending=False)
+                adj_factors = pd.Series(1.0, index=symbol_prices.index)
                 
-                # Find close price on day before ex-date
-                prev_date = ex_date - pd.Timedelta(days=1)
-                prev_price = symbol_prices[symbol_prices['date'] <= prev_date]['close'].iloc[-1] if len(symbol_prices[symbol_prices['date'] <= prev_date]) > 0 else None
-                
-                if prev_price is not None and prev_price > 0:
-                    # Calculate adjustment multiplier
-                    adj_multiplier = 1 - (dividend / prev_price)
+                for _, div_row in symbol_divs.iterrows():
+                    ex_date = div_row['ex_date']
+                    dividend = div_row['dividend']
                     
-                    # Apply to all dates before ex-date
-                    mask = (price_df['symbol'] == symbol) & (price_df['date'] < ex_date)
-                    price_df.loc[mask, 'adj_factor'] *= adj_multiplier
+                    prev_date = ex_date - pd.Timedelta(days=1)
+                    prior_prices = symbol_prices[symbol_prices['date'] <= prev_date]['close']
+                    prev_price = prior_prices.iloc[-1] if len(prior_prices) > 0 else None
+                    
+                    if prev_price is not None and prev_price > 0:
+                        adj_multiplier = max(0.001, 1 - (dividend / prev_price))
+                        mask = symbol_prices['date'] < ex_date
+                        adj_factors.loc[mask] *= adj_multiplier
+                
+                symbol_prices['adj_factor'] = adj_factors
+                symbol_prices['adj_close'] = symbol_prices['close'] * adj_factors
+            else:
+                symbol_prices['adj_factor'] = 1.0
+                symbol_prices['adj_close'] = symbol_prices['close']
+            
+            adjusted_groups.append(symbol_prices)
         
-        # Calculate adjusted close
-        price_df['adj_close'] = price_df['close'] * price_df['adj_factor']
+        price_df = pd.concat(adjusted_groups, ignore_index=True)
         
         logger.info("Dividend adjustment complete")
         

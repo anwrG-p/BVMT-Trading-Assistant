@@ -3,7 +3,10 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional, Tuple
-import xgboost as xgb
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
 
 from src.models.base import BaseForecaster
 from src.utils import logger
@@ -68,9 +71,6 @@ class VolumeForecaster(BaseForecaster):
         Returns:
             Target series shifted by horizon
         """
-        # Use log volume for better distribution
-        log_volume = np.log1p(df[target_column])
-        
         # Shift by horizon
         target = df.groupby('symbol')[target_column].shift(-self.horizon)
         
@@ -205,8 +205,11 @@ class VolumeForecaster(BaseForecaster):
             regime_code: 0, 1, or 2
             
         Returns:
-            Regime name
+            Regime name ('Low', 'Normal', 'High')
         """
+        regime_names = {0: 'Low', 1: 'Normal', 2: 'High'}
+        return regime_names.get(int(regime_code), 'Unknown')
+
     def save(self, path: "Path") -> None:
         """Save model and thresholds."""
         from pathlib import Path

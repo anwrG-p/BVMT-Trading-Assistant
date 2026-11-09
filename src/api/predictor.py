@@ -71,22 +71,7 @@ class StockPredictor:
         Returns:
             DataFrame with latest features
         """
-        import yfinance as yf
-        
-        # Yahoo Finance symbols often need suffix (e.g. '.TN' for Tunisia?)
-        # For now, let's try direct symbol or fallback
-        yf_symbol = symbol
-        if not symbol.endswith('.TN') and not symbol.endswith('.BVMT'):
-             # Heuristic: try adding .TN if not present, though BVMT might not be on YF fully
-             # If not on YF, we might need our internal scraper.
-             # For this demo, let's assume we can get it or fallback to last known data.
-             pass
-
         logger.info(f"Refreshing data for {symbol}...")
-        
-        # TODO: integrate with actual real-time scraper if available
-        # For now, we simulate "real-time" by ensuring we have the latest processed data
-        # In a real production system, this would call the scraper module
         
         # Reload features to get any updates
         processed_dir = Path(config.get('data.processed_dir'))
@@ -264,8 +249,10 @@ class StockPredictor:
             if 0.1 in available_quantiles and 0.9 in available_quantiles:
                 cis_to_calc.append(0.80)
             
-            # Check for 90% CI (needs 0.05 and 0.95)
-            if 0.05 in available_quantiles and 0.95 in available_quantiles:
+            # Check for 95% CI (needs 0.025 and 0.975)
+            if 0.025 in available_quantiles and 0.975 in available_quantiles:
+                cis_to_calc.append(0.95)
+            elif 0.05 in available_quantiles and 0.95 in available_quantiles:
                 cis_to_calc.append(0.90)
                 
             intervals = {}

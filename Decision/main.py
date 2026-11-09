@@ -77,7 +77,7 @@ def main():
 
     # --- 4. LAYER C: EXPLAINER ---
     print("\n--- Layer C: Explanation Generation ---")
-    explainer = PortfolioExplainer(api_key="AIzaSyD_YIpoubkm_ET4IbTJD4stqKdlzhS58aE")
+    explainer = PortfolioExplainer()
     
     explanation = explainer.generate_explanation(final_weights, confidence_scores, persona=user_persona)
     

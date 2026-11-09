@@ -34,9 +34,14 @@ def merge_market_index(
     
     index_subset = index_df[index_cols].copy()
     index_subset = index_subset.rename(columns={
-        index_column: 'market_index',
-        'change_pct': 'market_return'
+        index_column: 'market_index'
     })
+    if 'change_pct' in index_df.columns:
+        index_subset = index_subset.rename(columns={'change_pct': 'market_return'})
+    else:
+        # Sort by date before calculating market return on the unique index timeline
+        index_subset = index_subset.sort_values('date')
+        index_subset['market_return'] = pd.to_numeric(index_subset['market_index'], errors='coerce').pct_change()
     
     # Merge on date
     merged_df = stock_df.merge(index_subset, on='date', how='left')
@@ -63,9 +68,13 @@ def calculate_market_return(
     df = df.copy()
     
     if 'market_return' not in df.columns:
-        # Ensure index is numeric
-        market_idx = pd.to_numeric(df[index_column], errors='coerce')
-        df['market_return'] = market_idx.pct_change()
+        if 'symbol' in df.columns:
+            df['market_return'] = df.groupby('symbol')[index_column].transform(
+                lambda s: pd.to_numeric(s, errors='coerce').pct_change()
+            )
+        else:
+            market_idx = pd.to_numeric(df[index_column], errors='coerce')
+            df['market_return'] = market_idx.pct_change()
     
     return df
 

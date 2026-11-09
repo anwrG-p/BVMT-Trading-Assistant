@@ -76,6 +76,7 @@ def test_feature_pipeline():
 # Test Price Models
 def test_price_forecaster():
     """Test XGBoost price forecasting."""
+    pytest.importorskip("xgboost")
     # Create dummy data
     df = pd.DataFrame({
         'feature1': np.random.randn(100),
@@ -108,6 +109,7 @@ def test_price_forecaster():
 # Test Volume Models
 def test_volume_forecaster():
     """Test volume forecasting with liquidity regimes."""
+    pytest.importorskip("xgboost")
     # Create dummy data
     df = pd.DataFrame({
         'feature1': np.random.randn(100),

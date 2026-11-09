@@ -13,14 +13,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.utils import logger, config
 
-# try:
-#     print("Attempting to import StockPredictor...")
-#     from src.api.predictor import StockPredictor
-#     print("Imported StockPredictor successfully.")
-# except Exception as e:
-#     print(f"Failed to import StockPredictor: {e}")
-from src.api.mock_predictor import MockStockPredictor as StockPredictor
-logger.warning(f"Using MockStockPredictor (Forced).")
+try:
+    from src.api.predictor import StockPredictor
+    logger.info("Using real StockPredictor.")
+except Exception as e:
+    logger.warning(f"Failed to import real StockPredictor ({e}), falling back to MockStockPredictor.")
+    from src.api.mock_predictor import MockStockPredictor as StockPredictor
 
 # Create FastAPI app
 app = FastAPI(

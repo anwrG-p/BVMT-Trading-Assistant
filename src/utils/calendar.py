@@ -2,8 +2,12 @@
 
 import pandas as pd
 from datetime import date, datetime
-import hijri_converter
 from typing import List, Optional
+
+try:
+    import hijri_converter
+except ImportError:
+    hijri_converter = None
 
 class TunisianTradingCalendar:
     """Calendar for BVMT trading days and holidays."""
@@ -44,10 +48,14 @@ class TunisianTradingCalendar:
         end = "14:10"
         
         # Check if Ramadan
-        hijri = hijri_converter.convert.Gregorian(dt.year, dt.month, dt.day).to_hijri()
-        if hijri.month == 9:  # Ramadan
-            start = "10:00"
-            end = "12:30"
+        if hijri_converter is not None:
+            try:
+                hijri = hijri_converter.convert.Gregorian(dt.year, dt.month, dt.day).to_hijri()
+                if hijri.month == 9:  # Ramadan
+                    start = "10:00"
+                    end = "12:30"
+            except Exception:
+                pass
             
         return start, end
 

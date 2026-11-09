@@ -4,7 +4,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
 import pandas as pd
-import chardet
+
+try:
+    import chardet
+except ImportError:
+    chardet = None
 
 from src.utils import logger, DataLoadError
 from src.data.schema import standardize_columns, parse_french_date, apply_schema, STOCK_SCHEMA
@@ -37,20 +41,31 @@ class BaseFileLoader(ABC):
         Returns:
             Detected encoding (e.g., 'utf-8', 'latin-1')
         """
-        with open(self.file_path, 'rb') as f:
-            result = chardet.detect(f.read(100000))  # Read first 100KB
-        
-        encoding = result['encoding'] or 'utf-8'
-        confidence = result['confidence']
-        
-        logger.debug(f"Detected encoding: {encoding} (confidence: {confidence:.2f})")
-        
-        # Fallback to utf-8 if confidence is low
-        if confidence < 0.7:
-            logger.warning(f"Low encoding confidence ({confidence:.2f}), using UTF-8")
-            encoding = 'utf-8'
-        
-        return encoding
+        if chardet is not None:
+            with open(self.file_path, 'rb') as f:
+                result = chardet.detect(f.read(100000))  # Read first 100KB
+            
+            encoding = result['encoding'] or 'utf-8'
+            confidence = result.get('confidence', 1.0)
+            
+            logger.debug(f"Detected encoding: {encoding} (confidence: {confidence:.2f})")
+            
+            # Fallback to utf-8 if confidence is low
+            if confidence < 0.7:
+                logger.warning(f"Low encoding confidence ({confidence:.2f}), using UTF-8")
+                encoding = 'utf-8'
+            
+            return encoding
+
+        # Standard library fallback if chardet is not installed
+        for enc in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+            try:
+                with open(self.file_path, 'r', encoding=enc) as f:
+                    f.read(4096)
+                return enc
+            except UnicodeDecodeError:
+                continue
+        return 'utf-8'
 
 
 class CSVLoader(BaseFileLoader):

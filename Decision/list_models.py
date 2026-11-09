@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import os
 
-api_key = "AIzaSyD_YIpoubkm_ET4IbTJD4stqKdlzhS58aE"
+api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     print("No API Key")
 else:

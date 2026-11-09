@@ -320,18 +320,15 @@ def calculate_returns(
     Returns:
         DataFrame with return columns added
     """
+    from src.data.adjustments import calculate_log_returns
+    
     df = df.copy()
     
     # Calculate simple return
-    df['simple_return'] = df.groupby('symbol')[price_column].pct_change()
+    df['simple_return'] = df.groupby('symbol')[price_column].pct_change().fillna(0)
     
-    # Calculate log return
-    df['log_return'] = df.groupby('symbol')[price_column].apply(
-        lambda x: np.log(x / x.shift(1))
-    ).reset_index(level=0, drop=True)
-    
-    # Fill NA with 0 for the first period
-    df['simple_return'] = df['simple_return'].fillna(0)
+    # Calculate log return reusing standard adjustment logic
+    df = calculate_log_returns(df, price_column=price_column, output_column='log_return')
     df['log_return'] = df['log_return'].fillna(0)
     
     logger.debug(f"Calculated returns (simple and log)")

@@ -9,6 +9,11 @@ from typing import Dict, List, Optional, Union
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Compile emoji pattern once at module level
+EMOJI_PATTERN = re.compile(
+    "[\U00010000-\U0010ffff]|[\ud800-\udfff]", flags=re.UNICODE
+)
+
 class FinancialSentimentEngine:
     """
     A professional Financial Sentiment Engine using multilingual transformers.
@@ -64,24 +69,8 @@ class FinancialSentimentEngine:
         if not isinstance(text, str):
             return ""
         
-        # Remove emojis (surrogates)
-        clean_text = text.encode('utf-16', 'surrogatepass').decode('utf-16')
-        
-        # Regex for emoji ranges (simplified)
-        emoji_pattern = re.compile(
-            u"(\ud83d[\ude00-\ude4f])|"  # emoticons
-            u"(\ud83c[\udf00-\uffff])|"  # symbols & pictographs (1 of 2)
-            u"(\ud83d[\u0000-\uddff])|"  # symbols & pictographs (2 of 2)
-            u"(\ud83d[\ude80-\udeff])|"  # transport & map symbols
-            u"(\ud83c[\udde0-\uddff])"   # flags (iOS)
-            "+", flags=re.UNICODE)
-        
-        clean_text = emoji_pattern.sub(r'', clean_text)
-        
-        # Normalize whitespace
-        clean_text = " ".join(clean_text.split())
-        
-        return clean_text
+        clean_text = EMOJI_PATTERN.sub('', text)
+        return " ".join(clean_text.split())
 
     def analyze_entity_sentiment(self, text: str) -> Dict[str, str]:
         """

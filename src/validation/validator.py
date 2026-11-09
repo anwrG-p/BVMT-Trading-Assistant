@@ -46,33 +46,45 @@ class WalkForwardValidator:
         Returns:
             List of (train_df, test_df) tuples
         """
-        # Sort by date
-        df = df.sort_values(date_column).reset_index(drop=True)
-        
-        # Start from initial training size
-        train_end = self.initial_train_size
-        
-        num_splits = 0
-        while train_end < len(df):
-            # Define test end
-            test_end = min(train_end + self.step_size, len(df))
+        if date_column in df.columns:
+            unique_dates = pd.Series(df[date_column].unique()).sort_values().values
+            train_end_idx = self.initial_train_size
+            num_splits = 0
             
-            # Create split
-            train_df = df.iloc[:train_end].copy()
-            test_df = df.iloc[train_end:test_end].copy()
-            
-            if len(test_df) > 0:
-                yield train_df, test_df
-                num_splits += 1
-            
-            # Move forward
-            train_end = test_end
-            
-            # Stop if we've reached max test size
-            if self.max_test_size and num_splits >= self.max_test_size:
-                break
-        
-        logger.info(f"Processed {num_splits} walk-forward splits")
+            while train_end_idx < len(unique_dates):
+                test_end_idx = min(train_end_idx + self.step_size, len(unique_dates))
+                train_dates = set(unique_dates[:train_end_idx])
+                test_dates = set(unique_dates[train_end_idx:test_end_idx])
+                
+                train_df = df[df[date_column].isin(train_dates)].copy()
+                test_df = df[df[date_column].isin(test_dates)].copy()
+                
+                if len(test_df) > 0:
+                    yield train_df, test_df
+                    num_splits += 1
+                
+                train_end_idx = test_end_idx
+                if self.max_test_size and num_splits >= self.max_test_size:
+                    break
+            logger.info(f"Processed {num_splits} walk-forward splits")
+        else:
+            # Sort by index
+            df = df.reset_index(drop=True)
+            train_end = self.initial_train_size
+            num_splits = 0
+            while train_end < len(df):
+                test_end = min(train_end + self.step_size, len(df))
+                train_df = df.iloc[:train_end].copy()
+                test_df = df.iloc[train_end:test_end].copy()
+                
+                if len(test_df) > 0:
+                    yield train_df, test_df
+                    num_splits += 1
+                
+                train_end = test_end
+                if self.max_test_size and num_splits >= self.max_test_size:
+                    break
+            logger.info(f"Processed {num_splits} walk-forward splits")
     
     def validate_model(
         self,
@@ -136,15 +148,17 @@ class WalkForwardValidator:
             for horizon in horizons:
                 # Get actual values (shifted by horizon)
                 y_true = test_df.groupby('symbol')['log_return'].shift(-horizon)
+                valid = ~y_true.isna()
                 
-                # Store predictions and actuals
-                results[horizon]['y_true'].extend(y_true.dropna().values)
-                results[horizon]['y_pred'].extend(predictions[horizon][0.5])  # Median
-                
-                if horizon in intervals and confidence_level in intervals[horizon]:
-                    lower, upper = intervals[horizon][confidence_level]
-                    results[horizon]['lower_bound'].extend(lower)
-                    results[horizon]['upper_bound'].extend(upper)
+                if valid.any():
+                    valid_mask = valid.values
+                    results[horizon]['y_true'].extend(y_true[valid].values)
+                    results[horizon]['y_pred'].extend(np.asarray(predictions[horizon][0.5])[valid_mask])
+                    
+                    if horizon in intervals and confidence_level in intervals[horizon]:
+                        lower, upper = intervals[horizon][confidence_level]
+                        results[horizon]['lower_bound'].extend(np.asarray(lower)[valid_mask])
+                        results[horizon]['upper_bound'].extend(np.asarray(upper)[valid_mask])
         
         # Convert lists to arrays
         for horizon in horizons:
@@ -261,7 +275,12 @@ class Backtester:
         df['net_return'] = df['strategy_return'] - df['transaction_cost']
         
         # Calculate cumulative returns
-        df['cumulative_return'] = (1 + df['net_return']).cumprod()
+        if 'date' in df.columns:
+            daily_net = df.groupby('date')['net_return'].mean()
+            daily_cum = (1 + daily_net).cumprod()
+            df['cumulative_return'] = df['date'].map(daily_cum)
+        else:
+            df['cumulative_return'] = (1 + df['net_return']).cumprod()
         
         logger.info("✓ Backtest complete")
         
@@ -282,8 +301,13 @@ class Backtester:
         """
         from src.validation.metrics import calculate_sharpe_ratio, calculate_max_drawdown
         
-        returns = backtest_df['net_return'].values
-        cumulative_returns = backtest_df['cumulative_return'].values
+        if 'date' in backtest_df.columns:
+            daily_series = backtest_df.groupby('date')['net_return'].mean()
+            returns = daily_series.values
+            cumulative_returns = (1 + daily_series).cumprod().values
+        else:
+            returns = backtest_df['net_return'].values
+            cumulative_returns = backtest_df['cumulative_return'].values
         
         metrics = {
             'total_return': cumulative_returns[-1] - 1,
