@@ -97,3 +97,9 @@ dist/
 # Local Data and Models
 data/
 models/
+
+# Node
+node_modules/
+**/node_modules/
+dist/
+**/dist/

@@ -22,6 +22,18 @@ services:
       timeout: 10s
       retries: 3
 
+  # React Production Frontend Service
+  frontend:
+    build:
+      context: ./dashboard-frontend
+      dockerfile: Dockerfile
+    container_name: bvmt-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
   # Streamlit Dashboard Service
   dashboard:
     build: .

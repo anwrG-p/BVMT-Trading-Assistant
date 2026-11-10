@@ -48,6 +48,13 @@ from src.api.schemas.models import (
     VisualizationResponse,
     MetricsResponse
 )
+from src.api.routers import market, stock, portfolio, alerts, chat
+
+app.include_router(market.router)
+app.include_router(stock.router)
+app.include_router(portfolio.router)
+app.include_router(alerts.router)
+app.include_router(chat.router)
 
 # Sanitize response to handle NaN/Infinity
 import math
