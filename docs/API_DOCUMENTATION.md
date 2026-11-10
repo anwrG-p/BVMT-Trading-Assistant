@@ -158,3 +158,146 @@
   "data_loaded": true
 }
 ```
+
+---
+
+### 6. `GET /market/overview`
+
+**Purpose:** Get full market overview with TUNINDEX index performance, top gainers, losers, sentiment, and recent alerts.
+
+**Response:**
+
+```json
+{
+  "index": {
+    "name": "TUNINDEX",
+    "value": 13449.95,
+    "change": 0.62
+  },
+  "gainers": [
+    { "symbol": "BIAT", "price": 94.50, "change": 2.45 },
+    { "symbol": "ATTIJARI BANK", "price": 52.10, "change": 1.85 }
+  ],
+  "losers": [
+    { "symbol": "UIB", "price": 24.20, "change": -1.82 },
+    { "symbol": "STAR", "price": 165.00, "change": -1.49 }
+  ],
+  "sentiment": 0.68,
+  "recent_alerts": [
+    {
+      "id": 1,
+      "symbol": "BIAT",
+      "type": "volume",
+      "description": "Volume record sur BIAT",
+      "timestamp": "10:30"
+    }
+  ],
+  "marketVolume": 1845000.0,
+  "activeTraders": 1240
+}
+```
+
+---
+
+### 7. `GET /stock/{symbol}`
+
+**Purpose:** Get 60-day historical close price series, 5-day predictive forecasts, RSI (14), MACD signals, and recommendation.
+
+**Response:**
+
+```json
+{
+  "symbol": "BIAT",
+  "name": "BIAT - Bourse de Tunis",
+  "price_history": [
+    { "date": "2025-01-02", "value": 93.9, "forecast": false },
+    { "date": "2025-01-09", "value": 95.8, "forecast": true }
+  ],
+  "sentiment_timeline": [
+    { "date": "2025-01-02", "score": 0.72 }
+  ],
+  "indicators": {
+    "rsi": 58.4,
+    "macd": "Croisement Haussier (Bullish Crossover)"
+  },
+  "recommendation": {
+    "action": "ACHETER",
+    "confidence": 84.0
+  }
+}
+```
+
+---
+
+### 8. `GET /portfolio`
+
+**Purpose:** Get user portfolio metrics, positions, sector allocation, performance timeline, and AI optimization suggestions.
+
+**Response:**
+
+```json
+{
+  "capital": 93226.0,
+  "roi": 12.4,
+  "positions": [
+    { "symbol": "BIAT", "quantity": 250, "buyPrice": 90.0, "currentPrice": 94.5, "pl": 1125.0 }
+  ],
+  "allocation": [
+    { "name": "Secteur Bancaire", "value": 58.0 },
+    { "name": "Biens de Consommation", "value": 22.0 }
+  ],
+  "performance": [
+    { "date": "2025-02", "value": 93226.0 }
+  ],
+  "suggestions": [
+    "Surpondération sur le secteur bancaire. Rééquilibrer vers l'agroalimentaire."
+  ]
+}
+```
+
+---
+
+### 9. `GET /alerts`
+
+**Purpose:** Get active real-time anomaly, volume, and price alerts with severity classifications.
+
+**Response:**
+
+```json
+{
+  "alerts": [
+    {
+      "id": 1,
+      "symbol": "BIAT",
+      "type": "Volume",
+      "severity": "High",
+      "timestamp": "10:30",
+      "status": "Open"
+    }
+  ],
+  "filters": ["All", "Volume", "Price", "News", "Market"]
+}
+```
+
+---
+
+### 10. `POST /chat`
+
+**Purpose:** Trading assistant interactive question/answering endpoint.
+
+**Request:**
+
+```json
+{
+  "message": "Quelle est la tendance sur BIAT ?"
+}
+```
+
+**Response:**
+
+```json
+{
+  "reply": "BIAT affiche une dynamique haussière avec une rentabilité solide...",
+  "timestamp": "10:35"
+}
+```
